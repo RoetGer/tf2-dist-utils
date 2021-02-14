@@ -1,6 +1,9 @@
 from functools import wraps
 
-def wrap_class_init_(cls, **transf_dics):
+import tensorflow_probability as tfp
+tfd = tfp.distributions
+
+def transform_param(cls, **transf_dics):
     
     @wraps(cls)
     def wrapped_class_init_(*args, **kwargs):
@@ -19,3 +22,6 @@ def wrap_class_init_(cls, **transf_dics):
         return cls(*args, **kwargs)
     
     return wrapped_class_init_
+
+
+TransNormal = transform_param(tfd.Normal, scale=tfp.bijectors.Exp())
