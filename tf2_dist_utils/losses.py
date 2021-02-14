@@ -1,5 +1,8 @@
 import tensorflow as tf
 
+from tf2_dist_utils.distributions import TransNormal
+
+
 class NegLogLikeLoss(tf.keras.losses.Loss):
 
     def call(self, y_true, y_pred):
@@ -27,3 +30,6 @@ def build_loss(class_loss_name, dist):
     )
 
     return loss
+
+
+NegGaussLogLikeLoss = build_loss("NegGaussLogLikeLoss", TransNormal)
