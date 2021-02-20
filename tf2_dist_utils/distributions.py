@@ -22,21 +22,8 @@ def transform_param(cls, **transf_dics):
         return cls(*args, **kwargs)
     
     return wrapped_class_init_
-
-
-    class ZIDist(tfd.Mixture):
-      def __init__(self, probs, *args, **kwargs):
-          probs_ext = tf.stack([1 - probs, probs], axis = probs.shape.ndims)
-          
-          super().__init__(
-              cat=tfd.Categorical(probs=probs_ext),
-              components=[
-                  tfd.Deterministic(loc=tf.zeros_like(probs)),
-                  dist(*args, **kwargs)        
-              ])
-
-
-def build_zero_infl_dist(class_mixture_name, dist):
+    
+    def build_zero_infl_dist(class_mixture_name, dist):
     '''Creates a zero-inflated distribution
 
     Parameters
@@ -50,6 +37,17 @@ def build_zero_infl_dist(class_mixture_name, dist):
     Object of type ´class_mixture_name´ 
         Zero-inflated version of the base distribution.
     '''
+
+    class ZIDist(tfd.Mixture):
+      def __init__(self, probs, *args, **kwargs):
+          probs_ext = tf.stack([1 - probs, probs], axis = probs.shape.ndims)
+          
+          super().__init__(
+              cat=tfd.Categorical(probs=probs_ext),
+              components=[
+                  tfd.Deterministic(loc=tf.zeros_like(probs)),
+                  dist(*args, **kwargs)        
+              ])
 
     new_mixt_class = type(class_mixture_name, (ZIDist,), {})         
     return new_mixt_class
