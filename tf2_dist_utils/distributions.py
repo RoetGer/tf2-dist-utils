@@ -22,8 +22,9 @@ def transform_param(cls, **transf_dics):
         return cls(*args, **kwargs)
     
     return wrapped_class_init_
+
     
-    def build_zero_infl_dist(class_mixture_name, dist):
+def build_zero_infl_dist(class_mixture_name, dist):
     '''Creates a zero-inflated distribution
 
     Parameters
