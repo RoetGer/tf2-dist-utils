@@ -1,5 +1,6 @@
 from functools import wraps
 
+import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 
@@ -23,7 +24,7 @@ def transform_param(cls, **transf_dics):
     
     return wrapped_class_init_
 
-    
+
 def build_zero_infl_dist(class_mixture_name, dist):
     '''Creates a zero-inflated distribution
 
@@ -54,4 +55,18 @@ def build_zero_infl_dist(class_mixture_name, dist):
     return new_mixt_class
 
 
+# Some example zero-inflated distributions
+ZINormal = build_zero_infl_dist("ZINormal", tfd.Normal)
+ZIPoisson = build_zero_infl_dist("ZIPoisson", tfd.Poisson) 
+
+
+# Some example transformed distributions
 TransNormal = transform_param(tfd.Normal, scale=tfp.bijectors.Exp())
+TransZINormal = transform_parma(
+    ZINormal,
+    probs=tfp.bijectors.SoftClip(),
+    scale=tfp.bijectors.Exp())
+TransZIPoisson = transform_param(
+    ZIPoisson, 
+    probs=tfp.bijectors.SoftClip(),
+    rate=tfp.bijectors.Exp())
