@@ -5,7 +5,21 @@ import tensorflow_probability as tfp
 tfd = tfp.distributions
 
 def transform_param(cls, **transf_dics):
+    '''Transform parameters of a class __init__ method
     
+    Parameters
+    ----------
+    cls: class 
+        Class whose __init__ method should be wrapped.
+    transf_dics: dict
+        Dictionary containing parameters to be transformed as keys
+        and the respective transformations as value.
+    
+    Returns
+    -------
+    Wrapped class with transformed __init__ method.
+    '''
+
     @wraps(cls)
     def wrapped_class_init_(*args, **kwargs):
         varnames = cls.__init__.__code__.co_varnames[1:]
@@ -34,6 +48,7 @@ def build_zero_infl_dist(class_mixture_name, dist):
         Base distribution used for creating the zero-inflated
         distribution, i.e. the distribution from which will
         be sampled with probability p.
+    
     Returns
     -------
     Object of type ´class_mixture_name´ 
