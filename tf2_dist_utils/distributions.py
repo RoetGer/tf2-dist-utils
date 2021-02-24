@@ -100,9 +100,9 @@ ZIPoisson = build_zero_infl_dist("ZIPoisson", tfd.Poisson)
 
 # Some example transformed distributions
 TransNormal = transform_param(tfd.Normal, scale=tfp.bijectors.Exp())
-TransZINormal = transform_parma(
+TransZINormal = transform_param(
     ZINormal,
-    probs=tfp.bijectors.SoftClip(),
+    probs=tfp.bijectors.SoftClip(low=0., high=1.),
     scale=tfp.bijectors.Exp())
 TransZIPoisson = transform_param(
     ZIPoisson, 
