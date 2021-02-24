@@ -1,3 +1,4 @@
+import inspect
 from functools import wraps
 
 import tensorflow as tf
@@ -48,26 +49,48 @@ def build_zero_infl_dist(class_mixture_name, dist):
         Base distribution used for creating the zero-inflated
         distribution, i.e. the distribution from which will
         be sampled with probability p.
-    
+
     Returns
     -------
     Object of type ´class_mixture_name´ 
         Zero-inflated version of the base distribution.
     '''
 
+    sig = inspect.signature(dist.__init__)
+
+    # The [1:] removes the self from the signature
+    f_header_str = ", ".join([
+        k if v.default is inspect.Parameter.empty else str(v)
+          for k, v in list(sig.parameters.items())[1:]
+    ])
+
+    f_call_str = ", ".join(list(sig.parameters.keys())[1:])
+
+    class_str = f'''
     class ZIDist(tfd.Mixture):
-      def __init__(self, probs, *args, **kwargs):
+      def __init__(self, probs, {f_header_str}, *args, **kwargs):
           probs_ext = tf.stack([1 - probs, probs], axis = probs.shape.ndims)
           
           super().__init__(
               cat=tfd.Categorical(probs=probs_ext),
               components=[
                   tfd.Deterministic(loc=tf.zeros_like(probs)),
-                  dist(*args, **kwargs)        
+                  dist({f_call_str}, *args, **kwargs)        
               ])
+    '''
 
-    new_mixt_class = type(class_mixture_name, (ZIDist,), {})         
-    return new_mixt_class
+    # Create class - cleandoc removes the excess indentation
+    exec(inspect.cleandoc(class_str))
+
+    # If the mixture class is not inherited, but directly created
+    # via eval, i.e. eval(class_mixture_name), then dist is not
+    # found in the scope when creating the class.
+    new_mixt_class = type(
+        class_mixture_name, 
+        (eval("ZIDist"),), #(eval(class_mixture_name),), 
+        {}) 
+
+    return new_mixt_classs
 
 
 # Some example zero-inflated distributions
@@ -83,5 +106,5 @@ TransZINormal = transform_parma(
     scale=tfp.bijectors.Exp())
 TransZIPoisson = transform_param(
     ZIPoisson, 
-    probs=tfp.bijectors.SoftClip(),
+    probs=tfp.bijectors.SoftClip(low=0., high=1.),
     rate=tfp.bijectors.Exp())
