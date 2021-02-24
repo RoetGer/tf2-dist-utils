@@ -90,7 +90,7 @@ def build_zero_infl_dist(class_mixture_name, dist):
         (eval("ZIDist"),), #(eval(class_mixture_name),), 
         {}) 
 
-    return new_mixt_classs
+    return new_mixt_class
 
 
 # Some example zero-inflated distributions
