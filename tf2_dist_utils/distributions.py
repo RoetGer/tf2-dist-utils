@@ -93,6 +93,26 @@ def build_zero_infl_dist(class_mixture_name, dist):
     return new_mixt_class
 
 
+class ZIBuilder:
+    def __init__(self, dist):
+        self.dist = dist
+
+    def __call__(self, *args, **kwargs):
+      dist = self.dist
+
+      class ZIDist(tfd.Mixture):
+        def __init__(self, probs, *args, **kwargs):
+            probs_ext = tf.stack([1 - probs, probs], axis = probs.shape.ndims)
+            
+            super().__init__(
+                cat=tfd.Categorical(probs=probs_ext),
+                components=[
+                    tfd.Deterministic(loc=tf.zeros_like(probs)),
+                    dist(*args, **kwargs)        
+                ])
+      return ZIDist(*args, **kwargs)
+      
+
 # Some example zero-inflated distributions
 ZINormal = build_zero_infl_dist("ZINormal", tfd.Normal)
 ZIPoisson = build_zero_infl_dist("ZIPoisson", tfd.Poisson) 
