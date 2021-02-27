@@ -82,15 +82,7 @@ def build_zero_infl_dist(class_mixture_name, dist):
     # Create class - cleandoc removes the excess indentation
     exec(inspect.cleandoc(class_str))
 
-    # If the mixture class is not inherited, but directly created
-    # via eval, i.e. eval(class_mixture_name), then dist is not
-    # found in the scope when creating the class.
-    new_mixt_class = type(
-        class_mixture_name, 
-        (eval("ZIDist"),), #(eval(class_mixture_name),), 
-        {}) 
-
-    return new_mixt_class
+    return ZIDist
 
 
 class ZIBuilder:
@@ -111,7 +103,7 @@ class ZIBuilder:
                     dist(*args, **kwargs)        
                 ])
       return ZIDist(*args, **kwargs)
-      
+
 
 # Some example zero-inflated distributions
 ZINormal = build_zero_infl_dist("ZINormal", tfd.Normal)
