@@ -40,6 +40,29 @@ def transform_param(cls, **transf_dics):
     return wrapped_class_init_
 
 
+class TransObj():
+    def __init__(self, obj, **trans_dic):
+        self.trans_obj = obj
+        self.trans_dic = trans_dic
+    
+    def __call__(self, *args, **kwargs):
+        sign = inspect.signature(self.trans_obj)
+        varnames = list(sign.parameters.keys())
+        
+        args = list(args)
+        len_args = len(args)
+
+        for var, trans in self.trans_dic.items():
+            idx = varnames.index(var)
+
+            if idx < len_args:
+                args[idx] = trans(args[idx])
+            else:
+                kwargs[var] = trans(kwargs[var])
+        
+        return self.trans_obj(*args, **kwargs)
+
+
 def build_zero_infl_dist(dist):
     '''Creates a zero-inflated distribution
 
