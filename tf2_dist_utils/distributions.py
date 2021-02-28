@@ -40,7 +40,7 @@ def transform_param(cls, **transf_dics):
     return wrapped_class_init_
 
 
-def build_zero_infl_dist(class_mixture_name, dist):
+def build_zero_infl_dist(dist):
     '''Creates a zero-inflated distribution
 
     Parameters
@@ -52,10 +52,9 @@ def build_zero_infl_dist(class_mixture_name, dist):
 
     Returns
     -------
-    Object of type ´class_mixture_name´ 
+    Object of type ´ZIDist´ 
         Zero-inflated version of the base distribution.
     '''
-
     sig = inspect.signature(dist.__init__)
 
     # The [1:] removes the self from the signature
@@ -66,24 +65,29 @@ def build_zero_infl_dist(class_mixture_name, dist):
 
     f_call_str = ", ".join(list(sig.parameters.keys())[1:])
 
+    # class ZIDist(tfd.Mixture):
     class_str = f'''
-    class ZIDist(tfd.Mixture):
-      def __init__(self, probs, {f_header_str}, *args, **kwargs):
+    class ZIDist:
+      def __init__(self, dist):
+          self.dist = dist
+          
+      def __call__(self, probs, {f_header_str}, *args, **kwargs):
           probs_ext = tf.stack([1 - probs, probs], axis = probs.shape.ndims)
           
-          super().__init__(
+          mixt = tfd.Mixture(
               cat=tfd.Categorical(probs=probs_ext),
               components=[
                   tfd.Deterministic(loc=tf.zeros_like(probs)),
-                  dist({f_call_str}, *args, **kwargs)        
+                  self.dist({f_call_str}, *args, **kwargs)        
               ])
+          
+          return mixt
     '''
 
     # Create class - cleandoc removes the excess indentation
     exec(inspect.cleandoc(class_str))
 
-    return ZIDist
-
+    return eval("ZIDist(dist)")
 
 class ZIBuilder:
     def __init__(self, dist):
