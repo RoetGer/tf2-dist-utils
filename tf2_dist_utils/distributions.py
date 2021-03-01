@@ -133,17 +133,18 @@ class ZIBuilder:
 
 
 # Some example zero-inflated distributions
-ZINormal = build_zero_infl_dist("ZINormal", tfd.Normal)
-ZIPoisson = build_zero_infl_dist("ZIPoisson", tfd.Poisson) 
+ZINormal = build_zero_infl_dist(tfd.Normal)
+ZIPoisson = build_zero_infl_dist(tfd.Poisson) 
 
 
 # Some example transformed distributions
-TransNormal = transform_param(tfd.Normal, scale=tfp.bijectors.Exp())
-TransZINormal = transform_param(
-    ZINormal,
+TransNormal = TransObj(tfd.Normal, scale=tfp.bijectors.Exp())
+TransPoisson = TransObj(tfd.Poisson, rate=tfp.bijectors.Exp())
+TransZINormal = TransObj(
+    ZINormal, 
     probs=tfp.bijectors.SoftClip(low=0., high=1.),
     scale=tfp.bijectors.Exp())
-TransZIPoisson = transform_param(
-    ZIPoisson, 
+TransPoisson = TransObj(
+    ZIPoisson,
     probs=tfp.bijectors.SoftClip(low=0., high=1.),
     rate=tfp.bijectors.Exp())
