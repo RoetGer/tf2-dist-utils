@@ -32,7 +32,8 @@ class NegLogLikeLoss(tf.keras.losses.Loss):
 
         return -rv.log_prob(y_true)
 
-def build_loss(class_loss_name, dist):
+
+def build_loss(class_loss_name, dist, params=None):
     '''Creates a tensorflow 2.x loss function based on NegLokLikeLoss
 
     Parameters
@@ -43,7 +44,8 @@ def build_loss(class_loss_name, dist):
         Can be any type of tensorflow distribution object, 
         which supports parameter specification via call 
         (e.g. dist(param1, param2)) and has a log_prob method
-    
+    params : list[str]
+        Specifies which parameters should be exposed for optimization
     Returns
     -------
     Object of type class_loss_name
@@ -51,6 +53,9 @@ def build_loss(class_loss_name, dist):
         in conjuction with tensorflow 2.x models.
     '''
     
+    if params:
+        dist = expose_params(dist, params)
+
     def __init__(self):
         self.dist = dist
         super(NegLogLikeLoss, self).__init__()
@@ -64,6 +69,32 @@ def build_loss(class_loss_name, dist):
     )
 
     return loss
+
+
+def expose_params(func, params):
+    func_header = ", ".join(params)
+    func_call = ", ".join([
+        p + "=" + p for p in params
+    ])
+
+    nparams = len(params)
+
+    func_str = f'''
+    class ExpParam:
+      def __init__(self, func):
+        self.func = func
+        self.nparams = {nparams}
+      
+      def __call__(self, {func_header}):
+          return self.func({func_call})
+      
+      def get_nparams(self):
+          return self.nparams
+    '''
+
+    exec(inspect.cleandoc(func_str))
+
+    return eval("ExpParam(func)")
 
 
 NegGaussLogLikeLoss = build_loss("NegGaussLogLikeLoss", TransNormal)
