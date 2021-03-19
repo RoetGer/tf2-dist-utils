@@ -72,6 +72,24 @@ def build_loss(class_loss_name, dist, params=None):
 
 
 def expose_params(func, params):
+    '''Expose subset of parameters for optimization
+    
+    Useful if you are in a situation where only a subset of attributes
+    of a function is relevant and you want them to be optimized
+
+    Parameters
+    ----------
+    func : function/object
+        Can be any type of function or object
+    params : list[str]
+        Specifies which parameters should be exposed for optimization
+    Returns
+    -------
+    Object of type ExpParam
+        This class call method has only attributes defined
+        in params.
+    '''
+
     func_header = ", ".join(params)
     func_call = ", ".join([
         p + "=" + p for p in params
