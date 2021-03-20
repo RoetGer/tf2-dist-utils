@@ -24,10 +24,14 @@ class NegLogLikeLoss(tf.keras.losses.Loss):
 
         shape = y_pred.shape
         
-        lst = tf.split(
+        if len(y_pred.shape) > 1:
+          lst = tf.split(
             y_pred, 
             num_or_size_splits=shape[-1], 
             axis=(shape.ndims - 1))
+        else:
+          lst = [y_pred]
+        
         rv = self.dist(*lst)
 
         return -rv.log_prob(y_true)
