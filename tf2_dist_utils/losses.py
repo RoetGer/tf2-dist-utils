@@ -33,7 +33,7 @@ class NegLogLikeLoss(tf.keras.losses.Loss):
         return -rv.log_prob(y_true)
 
 
-def build_loss(class_loss_name, dist, params=None):
+def build_loss(class_loss_name, dist, params=None, **kwargs):
     '''Creates a tensorflow 2.x loss function based on NegLokLikeLoss
 
     Parameters
@@ -46,6 +46,12 @@ def build_loss(class_loss_name, dist, params=None):
         (e.g. dist(param1, param2)) and has a log_prob method
     params : list[str]
         Specifies which parameters should be exposed for optimization
+    **kwargs : dict
+        kwargs can be used to fix attributes of the distribution
+        object, e.g. if you want to create a loss function based on a
+        Gaussian distribution with location set to 0, you can simply
+        forward loc=0.0.
+
     Returns
     -------
     Object of type class_loss_name
@@ -53,6 +59,9 @@ def build_loss(class_loss_name, dist, params=None):
         in conjuction with tensorflow 2.x models.
     '''
     
+    if kwargs:
+        dist = partial(dist, **kwargs)
+
     if params:
         dist = expose_params(dist, params)
 
